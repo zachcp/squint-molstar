@@ -6,21 +6,19 @@ toc:
 
 
 
-## Getting Started with Swuint
+## Using Squint from JS
 
-### Using the CLJ Std Library With squint
-
-The squint library is available precompiled. Its offers the CLJS syntax but is pure JS working
-on vanilla JS objects.
+The squint library is available precompiled from NPM and is importable as `squint_core`. This is the CLJS standard library but using vanilla JS objects.
 
 ```js echo
 import * as squint_core from 'npm:squint-cljs/core.js';
+// this one will print in the console
 eval(`(async function() {
   squint_core.println("I'm just sitting on the dock of the bay ....")})()
 `).value
 ```
 
-## Using Squint Compiler
+## Compiling CLJ-> JS with Squint
 
 The squint compiler will convert CLJS to JS. But you will need `squint_core` as above to use it.
 
@@ -28,55 +26,47 @@ The squint compiler will convert CLJS to JS. But you will need `squint_core` as 
 import * as squint from 'npm:squint-cljs';
 import * as squint_core from 'npm:squint-cljs/core.js';
 
+// Showing Arrows and Assoc work as per CLJS
 const code = `
-  (str "... Watching as that ships roll in.")`;
+  (-> {}
+    (assoc :greatline "...I'm just sitting on the dock of the bay....")
+    (assoc :another "... Watching as that ships roll in..."))`;
 
+// compiler action is there
+// note: that I am getting rid of imports (first line).
+// Leave this if you are in Node.
 const compilerState = squint.compileStringEx(
-  `(do ${code})`,
-  {repl: false, context: 'return', "elide-exports": true},
-  null);
-
+  `(do ${code})`, {repl: false, context: 'return', "elide-exports": true}, null);
 const js = compilerState.javascript;
 const import_index = js.indexOf('\n');
 const newString2 = js.substring(import_index + 1);
-const result = {value: eval(`(async function() {
-  ${newString2}
-  })()`)};
-view( await (result).value);
+const result = {value: eval(`(async function() { ${newString2} })()`)};
+view(await (result).value);
 ```
 
-## Evaluate Larger Blocks of Text
+## Squint + Text Box
 
 Type some CLJS code and  hit submit to view to output.
 
 ```js
-
 import * as squint from 'npm:squint-cljs';
 import * as squint_core from 'npm:squint-cljs/core.js';
 
 function compile(code) {
   let compilerState = squint.compileStringEx(
-    `(do ${code})`,
-    {repl: false,
-     context: 'return',
-     "elide-exports": true},
-    null);
-
+    `(do ${code})`, {repl: false, context: 'return', "elide-exports": true}, null);
   let js = compilerState.javascript;
   let import_index = js.indexOf('\n');
   let newString2 = js.substring(import_index + 1);
-  let result = {value: eval(`(async function() {
-    ${newString2}
-    })()`)};
+  let result = {value: eval(`(async function() { ${newString2} })()`)};
   console.log(result.value);
   return result.value
 }
 
 const essay = view(Inputs.textarea({label: "Squint CLJS Eval", rows: 6, minlength: 10, submit: true}));
-
 ```
 
-### Compiled
+### Compiled Code Here
 
 ```js
 view(await compile(essay))
@@ -84,7 +74,7 @@ view(await compile(essay))
 
 ### Example Code
 
-For cut/paste.
+Cut/paste this code into the box above and hit Enter.
 
 ```
 (defn nodize
@@ -103,7 +93,7 @@ For cut/paste.
 
 
 
-## CodeMirror
+## Squint + CodeMirror
 
 Hit CMD+Enter To Evaluate.
 
@@ -132,7 +122,6 @@ import { history, historyKeymap } from 'npm:@codemirror/commands';
 import { syntaxHighlighting, defaultHighlightStyle, foldGutter } from 'npm:@codemirror/language';
 import { extension as eval_ext, cursor_node_string, top_level_string } from 'npm:@nextjournal/clojure-mode/extensions/eval-region';
 
-
 let example_code = `(defn nodize
   "Transforms a hiccup-like vector [:name props children] into a node map."
   [form]
@@ -141,24 +130,23 @@ let example_code = `(defn nodize
       (not (empty? props-val)) (assoc "params" props-val)
       (seq children-val) (assoc "children" (mapv nodize children-val)))))
 
-(def state-01
-  (nodize
-    [:root {}
-      [[:download {:url "https://files.wwpdb.org/download/1cbs.cif"}
-        [[:parse {:format "mmcif"}
-          [[:structure {:type "model"}
-            [[:component {:selector "all"}
-              [[:representation {:type "cartoon"}
-                [[:color {:color "blue"} nil]]]]]]]]]]]]]))
+  (def state-01
+    (nodize
+      [:root {}
+        [[:download {:url "https://files.wwpdb.org/download/1cbs.cif"}
+          [[:parse {:format "mmcif"}
+            [[:structure {:type "model"}
+              [[:component {:selector "all"}
+                [[:representation {:type "cartoon"}
+                  [[:color {:color "blue"} nil]]]]]]]]]]]]]))
 
-{:kind "single"
- :root state-01
- :metadata
- {:version "1.4"
- :timestamp: "2025-04-14T19:04:58.549065+00:00"}
+  {:kind "single"
+  :root state-01
+  :metadata
+  {:version "1.4"
+  :timestamp: "2025-04-14T19:04:58.549065+00:00"}
 }
 `
-
 
 let theme = EditorView.theme({
   ".cm-content": {whitespace: "pre-wrap",
@@ -179,15 +167,36 @@ let theme = EditorView.theme({
   ".cm-cursor": {visibility: "hidden"},
   "&.cm-focused .cm-cursor": {visibility: "visible"}
 });
+```
 
+```js
 
+// use this to hold compiled outputs from CodeMirror
 const codemirror_out = Mutable({
   value: null
 })
 
 
+// the MVSJ Viewer
+const app2 = display(document.querySelector("#molstar2"));
 
-let evalCell = async (opts) => {
+const cljs_viewer = molstar.Viewer.create(app2, {
+  layoutIsExpanded: false,
+  layoutShowControls: false,
+  layoutShowRemoteState: false,
+  layoutShowSequence: true,
+  layoutShowLog: false,
+  layoutShowLeftPanel: false,
+  viewportShowExpand: true,
+  viewportShowSelectionMode: false,
+  viewportShowAnimation: false,
+  pdbProvider: "rcsb",
+  emdbProvider: "rcsb"
+}).then((viewer) => {
+  return viewer;
+});
+
+const evalCell = async (opts) => {
   let code = opts.state.doc.toString();
   console.log("Evaluating Cell Code");
 
@@ -202,10 +211,13 @@ let evalCell = async (opts) => {
     // update the msvj with the new data
     console.log(result);
     console.log(JSON.stringify(result));
-
-    cljs_viewer.loadMvsData(JSON.stringify(result), "mvsj", {replaceExisting: true});
-
     console.log(codemirror_out);
+
+    console.log(cljs_viewer);
+    const viewer = await cljs_viewer;
+    console.log(viewer);
+    viewer.loadMvsData(JSON.stringify(result), "mvsj", {replaceExisting: true} )
+
   } catch (error) {
     console.error("Compilation error:", error);
     codemirror_out = {
@@ -239,12 +251,15 @@ let extensions = [
 ];
 
 
+
+
 let state = EditorState.create(
   {doc:example_code, extensions: extensions});
 let editorElt = document.querySelector('#editor');
 let editor = new EditorView({state: state,
                              parent: editorElt,
                              extensions: extensions });
+console.log(editor);
 ```
 
 
@@ -392,22 +407,15 @@ molstar.Viewer.create(app, {
 ```
 
 ```js
-const app2 = display(document.querySelector("#molstar2"));
 
-const cljs_viewer = molstar.Viewer.create(app2, {
-  layoutIsExpanded: false,
-  layoutShowControls: false,
-  layoutShowRemoteState: false,
-  layoutShowSequence: true,
-  layoutShowLog: false,
-  layoutShowLeftPanel: false,
-  viewportShowExpand: true,
-  viewportShowSelectionMode: false,
-  viewportShowAnimation: false,
-  pdbProvider: "rcsb",
-  emdbProvider: "rcsb"
-}).then((viewer) => {
-  return viewer;
-});
 
+
+// const editor_val = Generators.observe(change => {
+//     change(editor.getValue());
+//     editor.on('change', (cm, val) => {
+//       change(editor.getValue());
+//     });
+// });
+
+// console.log(editor_val);
 ```
