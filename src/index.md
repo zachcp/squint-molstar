@@ -93,10 +93,11 @@ Cut/paste this code into the box above and hit Enter.
 
 
 
-## Squint + CodeMirror
+## CodeMirror + Mol*
 
 Hit CMD+Enter To Evaluate.
 
+```html
  <div id="editor"
      class="rounded-md mb-0 py-2 text-sm monospace overflow-auto relative border shadow-lg bg-white"
      style="border: 2px dotted lightgray;
@@ -112,6 +113,10 @@ Hit CMD+Enter To Evaluate.
      background-color: white;">
 </div>
 
+<link rel="stylesheet" type="text/css" href="npm:molstar/build/viewer/molstar.css">
+<div id="molstar" style="position: relative; width: 400px; height: 400px;">
+
+```
 
 ```js
 // Code From here: https://github.com/nextjournal/clojure-mode/blob/main/public/squint/js/demo.mjs
@@ -169,18 +174,17 @@ let theme = EditorView.theme({
 });
 ```
 
-```js
 
+
+```js
 // use this to hold compiled outputs from CodeMirror
-const codemirror_out = Mutable({
-  value: null
-})
+const codemirror_out = Mutable({ value: null })
 
 
 // the MVSJ Viewer
-const app2 = display(document.querySelector("#molstar2"));
+const app = display(document.querySelector("#molstar"));
 
-const cljs_viewer = molstar.Viewer.create(app2, {
+const cljs_viewer = molstar.Viewer.create(app, {
   layoutIsExpanded: false,
   layoutShowControls: false,
   layoutShowRemoteState: false,
@@ -203,19 +207,9 @@ const evalCell = async (opts) => {
   try {
     // Await the compiled result
     const result = await compile(code);
-    console.log("compiled");
-    console.log(result);
-
-    // Update with completed value
-    codemirror_out.value = result;
-    // update the msvj with the new data
-    console.log(result);
-    console.log(JSON.stringify(result));
-    console.log(codemirror_out);
-
-    console.log(cljs_viewer);
     const viewer = await cljs_viewer;
-    console.log(viewer);
+
+    codemirror_out.value = result;
     viewer.loadMvsData(JSON.stringify(result), "mvsj", {replaceExisting: true} )
 
   } catch (error) {
@@ -225,32 +219,21 @@ const evalCell = async (opts) => {
       error: error
     };
   }
-
   return true;
 }
 
 let squintExtension = ( opts ) => {
-  return keymap.of([{key: "Alt-Enter", run: evalCell},
-                    // {key: opts.modifier + "-Enter",
-                    //  run: evalAtCursor,
-                    //  shift: evalToplevel
-                    // }
-  ])}
+  return keymap.of([
+    {key: "Alt-Enter", run: evalCell},
+])}
 
 let extensions = [
-  history(),
-  theme,
-  foldGutter(),
-  syntaxHighlighting(defaultHighlightStyle),
-  drawSelection(),
-  keymap.of(complete_keymap),
-  keymap.of(historyKeymap),
-  ...default_extensions,
-  eval_ext({modifier: "Meta"}),
+  history(), theme, foldGutter(),
+  syntaxHighlighting(defaultHighlightStyle), drawSelection(),
+  keymap.of(complete_keymap), keymap.of(historyKeymap),
+  ...default_extensions, eval_ext({modifier: "Meta"}),
   squintExtension({modifier: "Meta"})
 ];
-
-
 
 
 let state = EditorState.create(
@@ -259,163 +242,10 @@ let editorElt = document.querySelector('#editor');
 let editor = new EditorView({state: state,
                              parent: editorElt,
                              extensions: extensions });
-console.log(editor);
 ```
 
-
-```js echo
-view(editor.state)
-```
-
-```js echo
-view(editor.state.doc.text)
-```
-
-
-```js echo
-view(editor.state.doc.text.join(""))
-```
-
-```js echo
-view(await compile(editor.state.doc.text.join("")))
-```
-
-## CodeMirror Output
-
-This updates on change.
-
-```js
-view(codemirror_out)
-```
-
-
-
-## Load Molstar
-
-
-```html echo
-<link rel="stylesheet" type="text/css" href="npm:molstar/build/viewer/molstar.css">
-<div id="molstar" style="position: relative; width: 400px; height: 400px;">
-```
 
 ```js
 import "npm:molstar/build/viewer/molstar.js";
 const molstar = window.molstar;
-```
-
-
-### Example MSVJ
-
-
-```js
-const example_mvsj = {
-  "kind": "single",
-  "root": {
-    "kind": "root",
-    "children": [
-      {
-        "kind": "download",
-        "params": {
-          "url": "https://files.wwpdb.org/download/1cbs.cif"
-        },
-        "children": [
-          {
-            "kind": "parse",
-            "params": {
-              "format": "mmcif"
-            },
-            "children": [
-              {
-                "kind": "structure",
-                "params": {
-                  "type": "model"
-                },
-                "children": [
-                  {
-                    "kind": "component",
-                    "params": {
-                      "selector": "all"
-                    },
-                    "children": [
-                      {
-                        "kind": "representation",
-                        "params": {
-                          "type": "cartoon"
-                        },
-                        "children": [
-                          {
-                            "kind": "color",
-                            "params": {
-                              "color": "blue"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "metadata": {
-    "timestamp": "2025-04-14T19:04:58.549065+00:00",
-    "version": "1.4"
-  }
-}
-
-console.log(example_mvsj);
-console.log(JSON.stringify(example_mvsj));
-view(example_mvsj)
-```
-
-
-
-### Example MSVJ from CLJS
-
-
-
-```js
-const app = display(document.querySelector("#molstar"));
-
-molstar.Viewer.create(app, {
-  layoutIsExpanded: false,
-  layoutShowControls: false,
-  layoutShowRemoteState: false,
-  layoutShowSequence: true,
-  layoutShowLog: false,
-  layoutShowLeftPanel: true,
-  viewportShowExpand: true,
-  viewportShowSelectionMode: false,
-  viewportShowAnimation: false,
-  pdbProvider: "rcsb",
-  emdbProvider: "rcsb"
-}).then((viewer) => {
-  viewer.loadMvsData(JSON.stringify(example_mvsj), "mvsj");
-  return viewer;
-});
-
-
-```
-
-
-```html echo
-<div id="molstar2" style="position: relative; width: 400px; height: 400px;">
-```
-
-```js
-
-
-
-// const editor_val = Generators.observe(change => {
-//     change(editor.getValue());
-//     editor.on('change', (cm, val) => {
-//       change(editor.getValue());
-//     });
-// });
-
-// console.log(editor_val);
 ```
