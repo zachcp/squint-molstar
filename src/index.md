@@ -9,17 +9,17 @@ toc:
 
 - The [squint library](https://github.com/squint-cljs/squint) is available precompiled [from NPM](https://www.npmjs.com/package/squint-cljs) and is importable as `squint_core`.
 - This is the CLJS standard library but using vanilla JS objects.
-- You can use javascript's 1eval1 to
+- You can use JavaScript's `eval` to
 
 ```js echo
 import * as squint_core from 'npm:squint-cljs/core.js';
 // this works
-eval(`squint_core.println("I'm just sitting on the dock of the bay ....");`)
-// or you can invoke larger code blocks within a functions
+eval(`squint_core.println("I'm sittin' on the dock of the bay ....");`)
+// or you can invoke larger code blocks within functions
 eval(
   `(async function() {
       squint_core.println(
-        "I'm just sitting on the dock of the bay ....")})()
+        "I'm sittin' on the dock of the bay ....")})()
 `)
 ```
 
@@ -39,11 +39,11 @@ import * as squint_core from 'npm:squint-cljs/core.js';
 // Showing Arrows and Assoc work as per CLJS
 const code = `
   (-> {}
-    (assoc :greatline "...I'm just sitting on the dock of the bay....")
-    (assoc :another "... Watching as that ships roll in..."))`;
+    (assoc :greatline "... I'm sittin' on the dock of the bay ....")
+    (assoc :another "... Watching the tide roll away ..."))`;
 
 // compiler action is there
-// note: that I am getting rid of imports (first line).
+// note: I am getting rid of imports (first line).
 // Leave this if you are in Node.
 const compilerState = squint.compileStringEx(
   `(do ${code})`, {repl: false, context: 'return', "elide-exports": true}, null);
@@ -60,11 +60,11 @@ view(await (result).value);
 
 ## Squint + Text Box
 
-- Since we are in Observabel Framework, lets try a [TextArea](https://observablehq.com/@observablehq/input-textarea)
+- Since we are in Observable Framework, let's try a [TextArea](https://observablehq.com/@observablehq/input-textarea)
 - To execute the compiled JS you will need the `squint_core` library.
 - this example just shows using CLJS syntax and yielding a JS Object.
-- Type some CLJS code and  hit submit to view to output.
-- Try the code I've
+- Type some CLJS code and hit submit to view the output.
+- Try the code I've provided below.
 
 ```js echo
 import * as squint from 'npm:squint-cljs';
@@ -118,7 +118,7 @@ view(await compile(essay))
 
 ## CodeMirror + Mol*
 
-- This takes the sample principle as above but extends it to use the output JSON as input to another component.
+- This takes the same principle as above but extends it to use the output JSON as input to another component.
 - We are using the [Mol*](https://molstar.org) Viewer, a browser viewer for molecular structures.
 - We are targetting the [MolViewSpec](https://molstar.org/mol-view-spec/), a Mol* extension and declarative visualization standard.
 - The standard uses node trees in JSON.
@@ -178,13 +178,13 @@ let example_code = `(defn nodize
   :root state-01
   :metadata
   {:version "1.4"
-  :timestamp: "2025-04-14T19:04:58.549065+00:00"}
+  :timestamp "2025-04-14T19:04:58.549065+00:00"}
 }
 `
 
 let theme = EditorView.theme({
   ".cm-content": {whitespace: "pre-wrap",
-                  passing: "10px 0",
+                  padding: "10px 0",
                   flex: "1 1 0"},
 
   "&.cm-focused": {outline: "0 !important"},
