@@ -26,6 +26,6 @@ jobs:
 
       # Option 1: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: actions/deploy-pages@v4
         with:
-          folder: dist # The default output folder for Observable Framework projects
+          folder: dist
