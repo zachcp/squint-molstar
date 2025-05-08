@@ -5,22 +5,32 @@ toc:
 ---
 
 
-
 ## Using Squint from JS
 
-The squint library is available precompiled from NPM and is importable as `squint_core`. This is the CLJS standard library but using vanilla JS objects.
+- The [squint library](https://github.com/squint-cljs/squint) is available precompiled [from NPM](https://www.npmjs.com/package/squint-cljs) and is importable as `squint_core`.
+- This is the CLJS standard library but using vanilla JS objects.
+- You can use javascript's 1eval1 to
 
 ```js echo
 import * as squint_core from 'npm:squint-cljs/core.js';
-// this one will print in the console
-eval(`(async function() {
-  squint_core.println("I'm just sitting on the dock of the bay ....")})()
-`).value
+// this works
+eval(`squint_core.println("I'm just sitting on the dock of the bay ....");`)
+// or you can invoke larger code blocks within a functions
+eval(
+  `(async function() {
+      squint_core.println(
+        "I'm just sitting on the dock of the bay ....")})()
+`)
 ```
+
+<br>
+<br>
 
 ## Compiling CLJ-> JS with Squint
 
-The squint compiler will convert CLJS to JS. But you will need `squint_core` as above to use it.
+- The squint COMPILER is what converts CLJS into JS.
+- To execute the compiled JS you will need the `squint_core` library.
+- this example just shows using CLJS syntax and yielding a JS Object.
 
 ```js echo
 import * as squint from 'npm:squint-cljs';
@@ -44,11 +54,19 @@ const result = {value: eval(`(async function() { ${newString2} })()`)};
 view(await (result).value);
 ```
 
+<br>
+<br>
+
+
 ## Squint + Text Box
 
-Type some CLJS code and  hit submit to view to output.
+- Since we are in Observabel Framework, lets try a [TextArea](https://observablehq.com/@observablehq/input-textarea)
+- To execute the compiled JS you will need the `squint_core` library.
+- this example just shows using CLJS syntax and yielding a JS Object.
+- Type some CLJS code and  hit submit to view to output.
+- Try the code I've
 
-```js
+```js echo
 import * as squint from 'npm:squint-cljs';
 import * as squint_core from 'npm:squint-cljs/core.js';
 
@@ -63,7 +81,8 @@ function compile(code) {
   return result.value
 }
 
-const essay = view(Inputs.textarea({label: "Squint CLJS Eval", rows: 6, minlength: 10, submit: true}));
+const essay = view(Inputs.textarea({label: "Squint CLJS Eval", rows: 3, submit: true, placeholder: "(+ 1 10 100)"}));
+view(compile(essay))
 ```
 
 ### Compiled Code Here
@@ -74,9 +93,9 @@ view(await compile(essay))
 
 ### Example Code
 
-Cut/paste this code into the box above and hit Enter.
 
-```
+```{clj}
+;; cut/paste this above
 (defn nodize
   "Transforms a hiccup-like vector [:name props children] into a node map."
   [form]
@@ -92,10 +111,20 @@ Cut/paste this code into the box above and hit Enter.
 ```
 
 
+<br>
+<br>
+<br>
+
 
 ## CodeMirror + Mol*
 
-Hit CMD+Enter To Evaluate.
+- This takes the sample principle as above but extends it to use the output JSON as input to another component.
+- We are using the [Mol*](https://molstar.org) Viewer, a browser viewer for molecular structures.
+- We are targetting the [MolViewSpec](https://molstar.org/mol-view-spec/), a Mol* extension and declarative visualization standard.
+- The standard uses node trees in JSON.
+- Here we are going to use a single cljs FN to compress the node tree.
+- Hit ALT+Enter To evaluate the code.
+- try changing `blue` to `green` and reevaluating.
 
 ```html
  <div id="editor"
